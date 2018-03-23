@@ -32,13 +32,15 @@ Installs codedeploy and automatically registers salt-minion to a salt-master.
 
 Replace $SALT_MASTER_IP with the IP of your salt-master. Don't forget to tag your EC2 instance with a "Name" tag. Naming is important when it comes to defining salt environments. 
 
-For example: 
-_stage-api_
-_stage-www_
-_test-api_
-_test-www_
+For example:
+- _stage-api_
+- stage-www_
+- _test-api_
+- _test-www_
 
-These are all great examples of "Name" tags for instances because it allows you to apply salt states by '*www', '*api', 'stage*' or 'test*' or some other combination. This is useful when running salt commands. 
+These are all great examples of "Name" tags for instances because it allows you to apply salt states by '*www', '*api', 'stage*' or 'test*' or some other combination. 
+
+This can be extremely useful for defining how you run salt commands. This naming convention would allow you to run salt commands in the following way: 
 
 _salt 'stage*' state.show_top_ 
 
