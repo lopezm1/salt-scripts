@@ -11,7 +11,7 @@ sudo chmod +x ./install;
 sudo ./install auto;
 sudo service codedeploy-agent start;
 
-# Name used to register with salt master
+# Names used to register with salt master
 INSTANCE_PREFIX={YOUR-ID-HERE}
 INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id);
 

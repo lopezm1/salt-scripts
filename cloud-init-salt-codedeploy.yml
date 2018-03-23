@@ -1,0 +1,31 @@
+#cloud-config
+# Set hostname to match the instance ID, rather than the
+# automatic hostname based on the IP address.
+# In these three commands _GRP_ is a placeholder and
+# should be changed to your Auto Scaling Group name.
+bootcmd:
+  # Dynamically fetch region for EC2 in aws
+  - "region=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/.$//')"
+  - "sudo yum -y install ruby wget jq"
+  # Install codedeploy https://aws.amazon.com/codedeploy/
+  - "sudo cd /home/ec2-user"
+  - "sudo wget https://aws-codedeploy-${region}.s3.amazonaws.com/latest/install"
+  - "sudo chmod +x ./install"
+  - "sudo ./install auto"
+  - "sudo service codedeploy-agent start"
+  # BOX_NAME fetches the EC2 tag for "Name" - names used to register with salt master
+  - "INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)"
+  - "BOX_NAME=$(aws ec2 describe-tags --region $region --filters \"Name=resource-id,Values=$INSTANCE_ID\" | jq '.Tags[] | select(.Key == \"Name\") | .Value' | sed s/\\\"//g)"
+  # Change hostnames on VM
+  - "cloud-init-per instance my_set_hostname sh -xc \"echo $BOX_NAME-$INSTANCE_ID > /etc/hostname; hostname -F /etc/hostname\""
+  - "cloud-init-per instance my_etc_hosts sh -xc \"sed -i -e '/^127.0.0.1/d' /etc/hosts; sed -i -e '/^::1/d' /etc/hosts; echo 127.0.0.1 $BOX_NAME-$INSTANCE_ID >> /etc/hosts\""
+  # Install and bootstrap salt-minion to saltmaster
+  - "SALT_MASTER_IP={IP-TO-SALT-MASTER-HERE}"
+  - "mkdir -p /etc/salt/; $BOX_NAME-$INSTANCE_ID > /etc/salt/minion_id"
+  - "sudo curl -o /tmp/bootstrap-salt.sh -L https://bootstrap.saltstack.com"
+  - "sudo sh /tmp/bootstrap-salt.sh -i $BOX_NAME-$INSTANCE_ID -A $SALT_MASTER_IP"
+  - "sudo rm -f /tmp/bootstrap-salt.sh"
+# Preserve the hostname file since we've had to manually edit it
+preserve_hostname: true
+# Don't let cloud-init update the hosts file since we have edited it manually
+manage_etc_hosts: false
