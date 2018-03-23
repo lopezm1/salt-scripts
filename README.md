@@ -34,7 +34,7 @@ Replace $SALT_MASTER_IP with the IP of your salt-master. Don't forget to tag you
 
 For example:
 - _stage-api_
-- stage-www_
+- _stage-www_
 - _test-api_
 - _test-www_
 
